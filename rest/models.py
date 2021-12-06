@@ -33,18 +33,17 @@ class Paycheck(models.Model):
     total = models.IntegerField(default=0)
 
 
-# class Choice(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     party = models.ForeignKey(Paycheck, on_delete=models.CASCADE)
-#
-
 class Record(models.Model):
     product = models.CharField(max_length=64)
     quantity = models.IntegerField()
     price = models.IntegerField()
     paycheck = models.ForeignKey(Paycheck, on_delete=models.CASCADE, related_name='records')
 
-    # choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
-
     def __str__(self):
         return f"{self.product}"
+
+
+class Choice(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    quantity = models.IntegerField()
+    record = models.ForeignKey(Record, on_delete=models.CASCADE)

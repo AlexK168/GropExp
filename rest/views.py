@@ -34,7 +34,8 @@ class PartyViewSet(viewsets.ViewSet):
     def post_check(self, request, pk):
         party = get_object(Party, pk)
         self.check_object_permissions(request, party)
-
+        if hasattr(party, 'paycheck'):
+            return Response({"detail": "Check already exists"}, status=status.HTTP_400_BAD_REQUEST)
         check_serializer = PaycheckSerializer(data=request.data)
         if not check_serializer.is_valid():
             return Response({"detail": "Check data is not valid"}, status=status.HTTP_400_BAD_REQUEST)

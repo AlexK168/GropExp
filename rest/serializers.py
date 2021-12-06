@@ -1,7 +1,5 @@
-from rest_framework import serializers, status
-from rest.models import Party, Paycheck, Record, get_object
-from django.db.utils import IntegrityError
-from rest_framework.response import Response
+from rest_framework import serializers
+from rest.models import Party, Paycheck, Record, Choice, get_object
 
 
 class PartySerializer(serializers.ModelSerializer):
@@ -12,37 +10,60 @@ class PartySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class RecordSerializer(serializers.ModelSerializer):
+class RecordListSerializer(serializers.ListSerializer):
+    def validate(self, attrs):
+        products = [item['product'] for item in attrs]
+        if len(products) > len(set(products)):
+            raise serializers.ValidationError('Check must contain unique products')
+        return attrs
+
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
+        records = [Record(**item) for item in validated_data]
+        return Record.objects.bulk_create(records)
+
+
+class RecordSerializer(serializers.Serializer):
+    def create(self, validated_data):
+        return Record.objects.create(validated_data)
+
+    def update(self, instance, validated_data):
+        pass
+
     class Meta:
-        model = Record
-        exclude = ('id', 'paycheck')
+        list_serializer_class = RecordListSerializer
+
+    product = serializers.CharField(max_length=64)
+    quantity = serializers.IntegerField()
+    price = serializers.IntegerField()
 
 
 class PaycheckSerializer(serializers.ModelSerializer):
     class Meta:
         model = Paycheck
         fields = ("records", "total")
+
     records = RecordSerializer(many=True)
 
     def create(self, validated_data):
-        print(validated_data)
         records = validated_data.pop('records')
         party = validated_data.pop('party')
-        if hasattr(party, 'paycheck'):
-            raise serializers.ValidationError('Check already exists')
-
         check = Paycheck(party=party)
-        products = [item['product'] for item in records]
-        if len(products) > len(set(products)):
-            raise serializers.ValidationError('Check must contain unique products')
         total = sum([item['quantity'] * item['price'] for item in records])
         check.total = total
         check.save()
         Record.objects.bulk_create([Record(paycheck=check, **item) for item in records])
         return check
 
-#
-# class CreateChoiceSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Choice
-#         fields = ()
+    # TODO: finish damn function
+    def update(self, instance, validated_data):
+        records = validated_data.pop('records')
+        party = validated_data.pop('party')
+
+
+class ChoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Choice
+        fields = ("quantity",)
