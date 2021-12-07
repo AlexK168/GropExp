@@ -44,7 +44,15 @@ class PartyViewSet(viewsets.ViewSet):
 
     @paycheck.mapping.put
     def put_check(self, request, pk):
-        pass
+        party = get_object(Party, pk)
+        self.check_object_permissions(request, party)
+        if not hasattr(party, 'paycheck'):
+            return Response({"detail": "Check does not exists"}, status=status.HTTP_400_BAD_REQUEST)
+        check_serializer = PaycheckSerializer(party.paycheck, data=request.data)
+        if not check_serializer.is_valid():
+            return Response({"detail": "Check data is not valid"}, status=status.HTTP_400_BAD_REQUEST)
+        check_serializer.save()
+        return Response(check_serializer.data)
 
     @action(detail=True, methods=['post'], url_path='invite/(?P<user_id>\d+)', permission_classes=[IsPartyMember])
     def invite(self, request, pk, user_id):

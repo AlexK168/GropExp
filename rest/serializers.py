@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import serializers
 from rest.models import Party, Paycheck, Record, Choice, get_object
 
@@ -57,10 +58,27 @@ class PaycheckSerializer(serializers.ModelSerializer):
         Record.objects.bulk_create([Record(paycheck=check, **item) for item in records])
         return check
 
-    # TODO: finish damn function
     def update(self, instance, validated_data):
-        records = validated_data.pop('records')
-        party = validated_data.pop('party')
+        old_records = instance.records.all()
+        validated_records = validated_data.pop('records')
+        new_records = [record['product'] for record in validated_records]
+        with transaction.atomic():
+            for record in instance.records.all():
+                if record.product not in new_records:
+                    record.delete()
+            total = 0
+            for record in validated_records:
+                total += record['price'] * record['quantity']
+                record_to_update = old_records.filter(product=record['product']).first()
+                if record_to_update:
+                    record_to_update.quantity = record['quantity']
+                    record_to_update.price = record['price']
+                    record_to_update.save()
+                else:
+                    Record.objects.create(paycheck=instance, **record)
+            instance.total = total
+            instance.save()
+        return instance
 
 
 class ChoiceSerializer(serializers.ModelSerializer):
