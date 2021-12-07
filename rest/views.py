@@ -2,11 +2,11 @@ from rest_framework import viewsets, status
 
 from rest.models import *
 from rest.serializers import *
-from rest_framework.decorators import action, permission_classes, authentication_classes
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, PermissionDenied
 from .permissions import IsPartyHost, IsPartyMember, ViewSetActionPermissionMixin
-from django.db import transaction
+from rest_framework import mixins
 
 
 # Create your views here.
@@ -21,8 +21,17 @@ class PartyViewSet(ViewSetActionPermissionMixin, viewsets.ViewSet):
         "ban": [IsPartyHost],
         "destroy": [IsPartyHost],
         "partial_update": [IsPartyHost],
-        "contribute": [IsPartyMember]
+        "contribute": [IsPartyMember],
+        "contributions": [IsPartyMember]
     }
+
+    def get_party_and_check(self, request, pk):
+        party = get_object(Party, pk)
+        self.check_object_permissions(request, party)
+        if not hasattr(party, 'paycheck'):
+            raise NotFound(detail="Party doesn't have a check", code=404)
+        check = party.paycheck
+        return party, check
 
     def list(self, request):
         parties = request.user.parties.all()
@@ -32,11 +41,7 @@ class PartyViewSet(ViewSetActionPermissionMixin, viewsets.ViewSet):
     # returns check if found one
     @action(detail=True, methods=['get'])
     def paycheck(self, request, pk):
-        party = get_object(Party, pk)
-        self.check_object_permissions(request, party)
-        if not hasattr(party, 'paycheck'):
-            raise NotFound(detail="Party doesn't have a check", code=404)
-        check = party.paycheck
+        party, check = self.get_party_and_check(request, pk)
         return Response(PaycheckSerializer(check).data)
 
     # post check for party if not having one
@@ -54,11 +59,8 @@ class PartyViewSet(ViewSetActionPermissionMixin, viewsets.ViewSet):
 
     @paycheck.mapping.patch
     def patch_check(self, request, pk):
-        party = get_object(Party, pk)
-        self.check_object_permissions(request, party)
-        if not hasattr(party, 'paycheck'):
-            return Response({"detail": "Check does not exist"}, status=status.HTTP_400_BAD_REQUEST)
-        check_serializer = PaycheckSerializer(party.paycheck, data=request.data)
+        party, check = self.get_party_and_check(request, pk)
+        check_serializer = PaycheckSerializer(check, data=request.data)
         if not check_serializer.is_valid():
             return Response({"detail": "Check data is not valid"}, status=status.HTTP_400_BAD_REQUEST)
         check_serializer.save()
@@ -109,18 +111,29 @@ class PartyViewSet(ViewSetActionPermissionMixin, viewsets.ViewSet):
 
     @action(detail=True, methods=['post'])
     def contribute(self, request, pk):
-        party = get_object(Party, pk)
-        self.check_object_permissions(request, party)
-        if not hasattr(party, 'paycheck'):
-            return Response({"detail": "Check does not exist"}, status=status.HTTP_400_BAD_REQUEST)
-        check = party.paycheck
+        party, check = self.get_party_and_check(request, pk)
         serializer = CreateContributionSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({"detail": "Contribution data is not valid"}, status=status.HTTP_400_BAD_REQUEST)
         contribution = serializer.save(paycheck=check, user=request.user)
         return Response(ContributionSerializer(contribution).data)
 
+    @action(detail=True, methods=['get'])
+    def contributions(self, request, pk):
+        party, check = self.get_party_and_check(request, pk)
+        user_contribs = check.contributions.filter(user=request.user)
+        serializer = ContributionSerializer(user_contribs, many=True)
+        return Response(serializer.data)
 
 
+class ContributionViewSet(mixins.ListModelMixin,
+                          mixins.RetrieveModelMixin,
+                          mixins.UpdateModelMixin,
+                          mixins.DestroyModelMixin,
+                          viewsets.GenericViewSet):
+    model = Contribution
+    serializer_class = ContributionSerializer
 
-
+    def get_queryset(self):
+        user = self.request.user
+        return user.contributions.all()

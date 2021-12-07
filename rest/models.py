@@ -45,7 +45,7 @@ class Choice(models.Model):
 
 class Contribution(models.Model):
     contribution = models.IntegerField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contributions')
     paycheck = models.ForeignKey(Paycheck, on_delete=models.CASCADE, related_name='contributions')
 
     def __str__(self):

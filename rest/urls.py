@@ -2,13 +2,15 @@ import djoser
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest.views import *
+from djoser import views
 
-router = DefaultRouter()
+router = DefaultRouter(trailing_slash=False)
 router.register(r'parties', PartyViewSet)
-# router.register(r'account', UserViewSet)
+router.register(r'contributions', ContributionViewSet, 'Contribution')
+router.register(r'users', views.UserViewSet, 'User')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('auth/', include('djoser.urls')),
-    path('auth/', include('djoser.urls.authtoken'))
+    path('login', views.TokenCreateView.as_view()),
+    path('logout', views.TokenDestroyView.as_view())
 ]

@@ -108,6 +108,12 @@ class ContributionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contribution
         fields = "__all__"
+        extra_kwargs = {
+            'id': {'read_only': True},
+            'user': {'read_only': True},
+            'contribution': {'read_only': False},
+            'paycheck': {'read_only': True}
+        }
 
     user = serializers.SlugRelatedField(slug_field='username', read_only=True)
 
@@ -116,3 +122,4 @@ class CreateContributionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contribution
         fields = ("contribution", )
+
