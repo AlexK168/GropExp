@@ -20,7 +20,8 @@ class PartyViewSet(ViewSetActionPermissionMixin, viewsets.ViewSet):
         "invite": [IsPartyMember],
         "ban": [IsPartyHost],
         "destroy": [IsPartyHost],
-        "partial_update": [IsPartyHost]
+        "partial_update": [IsPartyHost],
+        "contribute": [IsPartyMember]
     }
 
     def list(self, request):
@@ -106,6 +107,18 @@ class PartyViewSet(ViewSetActionPermissionMixin, viewsets.ViewSet):
         serializer.save()
         return Response(serializer.data)
 
+    @action(detail=True, methods=['post'])
+    def contribute(self, request, pk):
+        party = get_object(Party, pk)
+        self.check_object_permissions(request, party)
+        if not hasattr(party, 'paycheck'):
+            return Response({"detail": "Check does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+        check = party.paycheck
+        serializer = CreateContributionSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({"detail": "Contribution data is not valid"}, status=status.HTTP_400_BAD_REQUEST)
+        contribution = serializer.save(paycheck=check, user=request.user)
+        return Response(ContributionSerializer(contribution).data)
 
 
 

@@ -56,7 +56,7 @@ DJOSER = {
     'PASSWORD-RESET-CONFIRM-URL': '#/password/reset/confirm/{uid}/{token}',
     'USERNAME-RESET-CONFIRM-URL': '#/username/reset/confirm/{uid}/{token}',
     'ACTIVATION_URL': '#/activate/{uid}/{token}',
-    'SEND_ACTIVATION_EMAIL': True,
+    'SEND_ACTIVATION_EMAIL': False,
     'SERIALIZERS': {},
 }
 

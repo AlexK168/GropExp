@@ -1,6 +1,6 @@
 from django.db import transaction
 from rest_framework import serializers
-from rest.models import Party, Paycheck, Record, Choice, get_object
+from rest.models import Party, Paycheck, Record, Choice, get_object, Contribution
 
 
 class PartySerializer(serializers.ModelSerializer):
@@ -102,3 +102,17 @@ class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Choice
         fields = ("quantity",)
+
+
+class ContributionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contribution
+        fields = "__all__"
+
+    user = serializers.SlugRelatedField(slug_field='username', read_only=True)
+
+
+class CreateContributionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contribution
+        fields = ("contribution", )

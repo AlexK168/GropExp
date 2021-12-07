@@ -3,7 +3,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest.views import *
 
-router = DefaultRouter(trailing_slash=False)
+router = DefaultRouter()
 router.register(r'parties', PartyViewSet)
 # router.register(r'account', UserViewSet)
 

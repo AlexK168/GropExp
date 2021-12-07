@@ -22,12 +22,6 @@ class Party(models.Model):
         return f"{self.name}"
 
 
-# class Contribution(models.Model):
-#     contribution = models.IntegerField()
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     party = models.ForeignKey(Party, on_delete=models.CASCADE)
-
-
 class Paycheck(models.Model):
     party = models.OneToOneField(Party, on_delete=models.CASCADE)
     total = models.IntegerField(default=0)
@@ -47,3 +41,12 @@ class Choice(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     quantity = models.IntegerField()
     record = models.ForeignKey(Record, on_delete=models.CASCADE)
+
+
+class Contribution(models.Model):
+    contribution = models.IntegerField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    paycheck = models.ForeignKey(Paycheck, on_delete=models.CASCADE, related_name='contributions')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.contribution}"
