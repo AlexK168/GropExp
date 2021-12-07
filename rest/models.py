@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.contrib.auth.models import User
 from rest_framework.exceptions import NotFound
@@ -51,7 +52,7 @@ class Choice(models.Model):
 
 
 class Contribution(models.Model):
-    contribution = models.IntegerField()
+    contribution = models.IntegerField(validators=[MinValueValidator(1)])
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contributions')
     paycheck = models.ForeignKey(Paycheck, on_delete=models.CASCADE, related_name='contributions')
 
