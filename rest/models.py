@@ -10,6 +10,13 @@ def get_object(klass, pk):
         raise NotFound(detail="Object of class {} is not found".format(klass.__name__), code=404)
 
 
+def get_user_by_name(username):
+    try:
+        return User.objects.get(username=username)
+    except User.DoesNotExist:
+        raise NotFound(detail="User is not found", code=404)
+
+
 class Party(models.Model):
     name = models.CharField(max_length=32)
     host = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name='hosted_parties')

@@ -66,21 +66,21 @@ class PartyViewSet(ViewSetActionPermissionMixin, viewsets.ViewSet):
         check_serializer.save()
         return Response(check_serializer.data)
 
-    @action(detail=True, methods=['post'], url_path='invite/(?P<user_id>\d+)')
-    def invite(self, request, pk, user_id):
+    @action(detail=True, methods=['post'], url_path='invite/(?P<username>\w+)')
+    def invite(self, request, pk, username):
         party = get_object(Party, pk)
         self.check_object_permissions(request, party)
-        user_to_invite = get_object(User, user_id)
+        user_to_invite = get_user_by_name(username)
         if party in user_to_invite.parties.all():
             return Response({"detail": "Invited user is already a party member"})
         user_to_invite.parties.add(party)
         return Response({"detail": "User is invited"})
 
-    @action(detail=True, methods=['delete'], url_path='ban/(?P<user_id>\d+)')
-    def ban(self, request, pk, user_id):
+    @action(detail=True, methods=['delete'], url_path='ban/(?P<username>\w+)')
+    def ban(self, request, pk, username):
         party = get_object(Party, pk)
         self.check_object_permissions(request, party)
-        user_to_ban = get_object(User, user_id)
+        user_to_ban = get_user_by_name(username)
         if party not in user_to_ban.parties.all():
             return Response({"detail": "User is not a party member"})
         if user_to_ban == party.host:
