@@ -11,6 +11,23 @@ class PartySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class CreatePartySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Party
+        fields = ("name",)
+
+    def create(self, validated_data):
+        party = Party(**validated_data)
+        party.save()
+        party.members.add(validated_data['host'])
+        return party
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data['name']
+        instance.save()
+        return instance
+
+
 class RecordListSerializer(serializers.ListSerializer):
     def validate(self, attrs):
         products = [item['product'] for item in attrs]
