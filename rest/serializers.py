@@ -54,8 +54,8 @@ class RecordSerializer(serializers.Serializer):
         list_serializer_class = RecordListSerializer
 
     product = serializers.CharField(max_length=64)
-    quantity = serializers.IntegerField()
-    price = serializers.IntegerField()
+    quantity = serializers.IntegerField(min_value=1)
+    price = serializers.IntegerField(min_value=1)
 
 
 class PaycheckSerializer(serializers.ModelSerializer):
@@ -98,12 +98,6 @@ class PaycheckSerializer(serializers.ModelSerializer):
         return instance
 
 
-class ChoiceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Choice
-        fields = ("quantity",)
-
-
 class ContributionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contribution
@@ -122,4 +116,31 @@ class CreateContributionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contribution
         fields = ("contribution", )
+
+
+class ChoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Choice
+        fields = "__all__"
+        extra_kwargs = {
+            'id': {'read_only': True},
+            'user': {'read_only': True},
+            'quantity': {'read_only': False},
+            'record': {'read_only': True},
+            'paycheck': {'read_only': True}
+        }
+
+    user = serializers.SlugRelatedField(slug_field='username', read_only=True)
+    record = serializers.SlugRelatedField(slug_field='product', read_only=True)
+
+
+class CreateChoiceSerializer(serializers.Serializer):
+    def create(self, validated_data):
+        return Choice.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        pass
+
+    quantity = serializers.IntegerField(min_value=1)
+
 

@@ -46,9 +46,10 @@ class Record(models.Model):
 
 
 class Choice(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    quantity = models.IntegerField()
-    record = models.ForeignKey(Record, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='choices')
+    quantity = models.IntegerField(validators=[MinValueValidator(1)])
+    record = models.ForeignKey(Record, on_delete=models.CASCADE, related_name='choices')
+    paycheck = models.ForeignKey(Paycheck, on_delete=models.CASCADE, related_name='choices')
 
 
 class Contribution(models.Model):

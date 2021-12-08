@@ -8,6 +8,7 @@ router = DefaultRouter(trailing_slash=False)
 router.register(r'parties', PartyViewSet)
 router.register(r'contributions', ContributionViewSet, 'Contribution')
 router.register(r'users', views.UserViewSet, 'User')
+router.register(r'choices', ChoiceViewSet, 'Choice')
 
 urlpatterns = [
     path('', include(router.urls)),
