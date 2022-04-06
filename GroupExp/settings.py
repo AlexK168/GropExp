@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest',
     'djoser',
+    'django_extensions',
 ]
 
 REST_FRAMEWORK = {
@@ -58,6 +59,7 @@ DJOSER = {
     'ACTIVATION_URL': '#/activate/{uid}/{token}',
     'SEND_ACTIVATION_EMAIL': False,
     'SERIALIZERS': {},
+    # 'LOGIN_FIELD': "email"
 }
 
 MIDDLEWARE = [
