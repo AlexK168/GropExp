@@ -25,8 +25,7 @@ SECRET_KEY = 'django-insecure-%dqyph8=gr5zqhzyvc87bm6ili82a-@im4+t+i3ph%&+74cxhx
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['10.0.2.2', 'localhost', '127.0.0.1']
 
 # Application definition
 
@@ -58,8 +57,12 @@ DJOSER = {
     'USERNAME-RESET-CONFIRM-URL': '#/username/reset/confirm/{uid}/{token}',
     'ACTIVATION_URL': '#/activate/{uid}/{token}',
     'SEND_ACTIVATION_EMAIL': False,
-    'SERIALIZERS': {},
-    # 'LOGIN_FIELD': "email"
+    'SERIALIZERS': {
+        'user_create': 'rest.serializers.UserCreateSerializer',
+        'current_user': 'rest.serializers.UserSerializer',
+        'user': 'rest.serializers.UserSerializer'
+    },
+    'LOGIN_FIELD': "email"
 }
 
 MIDDLEWARE = [
@@ -122,7 +125,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
